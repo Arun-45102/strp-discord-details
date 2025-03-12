@@ -36,11 +36,11 @@ const ALLOWED_ROLES = [
   'ADVENTURER',
 ];
 
-const FIVEM_SERVER_IP = '4xeqgv';
-
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
+
+const FIVEMID = process.env.FIVEMID;
 
 async function getFivemData(FIVEM_SERVER_IP) {
   try {
@@ -106,7 +106,7 @@ async function getAllData() {
     const guild = await getMemberCount(SERVER_ID);
     const onlineCount = await getOnlineMembers(SERVER_ID);
     const rolesBasedCount = await getFilteredRoleCounts(SERVER_ID);
-    const getFivemCount = await getFivemData(FIVEM_SERVER_IP);
+    const getFivemCount = await getFivemData(FIVEMID);
     return {
       count: guild.memberCount,
       onlineCount: onlineCount,

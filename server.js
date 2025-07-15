@@ -3,8 +3,11 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import { WebSocketServer } from 'ws';
 import express from 'express';
 import { createServer } from 'http';
-import axios from 'axios';
 import cors from 'cors';
+import puppeteer from 'puppeteer-extra'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+puppeteer.use(StealthPlugin());
 
 // Declare Port
 const PORT = process.env.PORT;
@@ -43,25 +46,25 @@ client.once('ready', () => {
 const FIVEMID = process.env.FIVEMID;
 
 async function getFivemData(FIVEM_SERVER_IP) {
+  const url = `http://servers-frontend.fivem.net/api/servers/single/${FIVEM_SERVER_IP}`;
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'], });
+
   try {
-    const response = await axios.get(
-      `https://servers-frontend.fivem.net/api/servers/single/${FIVEM_SERVER_IP}`,
-      {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-          Accept: 'application/json',
-        },
-      }
-    );
-    return response.data;
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 3000 });
+    const bodyText = await page.evaluate(() => document.body.innerText);
+    const data = JSON.parse(bodyText);
+    return data;
   } catch (error) {
+    console.log(error)
     console.error(
       '❌ Error fetching FiveM data:',
       error.response?.status,
       error.response?.statusText
     );
     return 'Error';
+  } finally {
+    await browser.close();
   }
 }
 
